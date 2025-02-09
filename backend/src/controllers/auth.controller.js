@@ -53,7 +53,7 @@ export const login = async (req, res) => {
   if (!email || !password) {
     return res.status(404).send("please enter the password and email correctly");
   }
-
+//user id for j@mail.com : 6796ea6e661c44e2db15396f
   try {
     const user = await User.findOne({ email });
 

@@ -1,13 +1,15 @@
 import { useChatStore } from "../store/useChatStore";
-import { useEffect, useRef } from "react";
-import { Trash } from "lucide-react";
+import { useEffect, useRef, useCallback, useState } from "react";
+import { ArrowUpRight, Trash } from "lucide-react";
 
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
-import { useAuthStore } from "../store/useAuthStore";
+import { useAuthStore } from "../store/useAuthStore.js";
 import { formatMessageTime } from "../lib/util";
 import toast from "react-hot-toast";
+import EmptyChat from "./skeletons/EmptyChat.jsx";
+
 
 const ChatContainer = () => {
   const {
@@ -21,15 +23,25 @@ const ChatContainer = () => {
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
-
+  const messagedelref = useRef(null);
+  const { socket } = useAuthStore();
+  const [msg,setmsg] = useState(false);
+  
   useEffect(() => {
     getMessages(selectedUser._id);
 
+    
+    socket.on("deleteMessage", async ({messageId}) => {
+      setmsg(!msg);
+    })
+    
     subscribeToMessages();
-
-    return () => unsubscribeFromMessages();
-  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
-
+    return () => {
+      unsubscribeFromMessages()
+      socket.off("deleteMessage")
+    };
+  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages,deleteMessage,messagedelref,socket,msg]);
+  
   useEffect(() => {
     if (messageEndRef.current && messages) {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -37,8 +49,8 @@ const ChatContainer = () => {
   }, [messages]);
 
 
-
-  const handleDeleteMessage = (messageId) => {
+  
+  const handleDeleteMessage = async (messageId) => {
     toast((t) => (
       <div className="flex flex-col gap-2 w-80 justify-center align-middle">
         <span>Delete this message?</span>
@@ -51,12 +63,14 @@ const ChatContainer = () => {
           </button>
           <button
             className="bg-red-500 px-3 py-1 rounded-md text-sm text-white hover:bg-red-600 text-center"
-            onClick={() => {
-              toast.promise(
-                deleteMessage(messageId),
+            ref={messagedelref}
+            onClick={async () => {
+               toast(
+                await deleteMessage(messageId),
                 {
-                  loading: 'Deleting...',
                   success: 'Message deleted!',
+                  duration:5,
+                  loading: 'Deleting...',
                   error: 'Failed to delete message',
                 }
               );
@@ -71,9 +85,16 @@ const ChatContainer = () => {
       duration: 5000,
     });
   };
-
-
-
+  
+  // console.log(messages.length)
+  if( !messages.length ){
+    return (<div className="flex-1 flex flex-col overflow-auto">
+        <ChatHeader />
+        <EmptyChat />
+        <MessageInput />
+      </div>)
+  }
+  
 
 
   if (isMessagesLoading) {
@@ -85,6 +106,7 @@ const ChatContainer = () => {
       </div>
     );
   }
+
 
   return (
     <div className="flex-1 flex flex-col overflow-auto">
@@ -118,7 +140,8 @@ const ChatContainer = () => {
                 <button
                   className="text-xs opacity-50 hover:opacity-100 transition-opacity"
                   title="Delete message"
-                  onClick={() => handleDeleteMessage(message._id)}
+                  ref={messagedelref}
+                  onClick={async () => handleDeleteMessage(message._id)}
                 >
                   <Trash className="h-4 w-4 text-red-500" />
                 </button>

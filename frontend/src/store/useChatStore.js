@@ -9,6 +9,7 @@ export const useChatStore = create((set, get) => ({
   selectedUser: null,
   isUsersLoading: false,
   isMessagesLoading: false,
+  remoteUser: null,
 
   getUsers: async () => {
     set({ isUsersLoading: true });
@@ -24,6 +25,7 @@ export const useChatStore = create((set, get) => ({
 
   getMessages: async (userId) => {
     set({ isMessagesLoading: true });
+    set({remoteUser:userId});
     try {
       const res = await axiosInstance.get(`/message/${userId}`);
       set({ messages: res.data });
@@ -43,6 +45,18 @@ export const useChatStore = create((set, get) => ({
     } catch (error) {
       console.log(error)
       toast.error(error);
+    }
+  },
+
+  deleteMessage: async (id) => {
+    try {
+      const { remoteUser:userId } = get();
+      const res = await axiosInstance.delete(`/message/${id}`);
+      console.log("message deleted : ",res);
+      await get().getMessages(userId);
+
+    } catch (error) {
+      console.log(error)
     }
   },
 

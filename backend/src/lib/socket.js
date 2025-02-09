@@ -7,55 +7,74 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"]
-  }
+    origin: ["http://localhost:5173"],
+  },
 });
 
+// Used to store online users: { userId: socketId }
+const userSocketMap = {};
+
 export function getReceiverSocketId(userId) {
-  return userSocketMap[userId];
+  return userSocketMap[userId] || null;
 }
 
-// used to store online users
-const userSocketMap = {}; // {userId: socketId}
-
-// WebRTC signaling events
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
-  if (userId) userSocketMap[userId] = socket.id;
 
-  socket.on("call-user", ({ userToCall, signalData, from, name }) => {
-    const receiverSocketId = userSocketMap[userToCall];
+  if (userId) {
+    userSocketMap[userId] = socket.id;
+    console.log(`✅ User connected: ${userId} -> Socket ID: ${socket.id}`);
+  }
+
+  // Emit updated list of online users
+  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+  socket.on("call-user", ({ to, from, signal }) => {
+    const receiverSocketId = getReceiverSocketId(to);
     if (receiverSocketId) {
-      io.to(receiverSocketId).emit("incoming-call", {
-        signal: signalData,
-        from,
-        name
-      });
+      console.log(`📞 Calling user ${to} from ${from}`);
+      io.to(receiverSocketId).emit("incoming-call", { from, signal });
+    } else {
+      console.warn(`⚠️ User ${to} is offline or not found.`);
     }
   });
 
   socket.on("answer-call", ({ to, signal }) => {
-    const callerSocketId = userSocketMap[to];
+    const callerSocketId = getReceiverSocketId(to);
     if (callerSocketId) {
-      io.to(callerSocketId).emit("call-accepted", signal);
+      console.log(`✅ Call answered by ${userId} for ${to}`);
+      io.to(callerSocketId).emit("call-answered", { signal });
+    } else {
+      console.warn(`⚠️ Caller ${to} not found.`);
+    }
+  });
+
+  socket.on("ice-candidate", ({candidate, to  }) => {
+    const receiverSocketId = getReceiverSocketId(to);
+    if (receiverSocketId) {
+      console.log(`❄️ Sending ICE candidate from ${userId} to ${to}`);
+      io.to(receiverSocketId).emit("ice-candidate", { candidate, from: userId });
+    } else {
+      console.warn(`⚠️ ICE candidate receiver ${to} not found.`);
     }
   });
 
   socket.on("end-call", ({ to }) => {
-    const receiverSocketId = userSocketMap[to];
+    const receiverSocketId = getReceiverSocketId(to);
     if (receiverSocketId) {
+      console.log(`🚫 Call ended by ${userId} for ${to}`);
       io.to(receiverSocketId).emit("call-ended");
+    } else {
+      console.warn(`⚠️ Cannot end call, user ${to} not found.`);
     }
   });
 
-  // io.emit() is used to send events to all the connected clients
-  io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
   socket.on("disconnect", () => {
-    // console.log("A user disconnected", socket.id);
-    delete userSocketMap[userId];
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    if (userId) {
+      delete userSocketMap[userId];
+      console.log(`❌ User disconnected: ${userId}`);
+      io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    }
   });
 });
 

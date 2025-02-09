@@ -88,10 +88,10 @@ export const useAuthStore = create((set, get) => ({
 
   // Connect to the WebSocket server
   connectSocket: () => {
-    const { authUser, BASE_URL } = get();
+    const { authUser, BASE_URL } = get();                           //BaseUrl=localhost:3000
     if (!authUser || get().socket?.connected) return;
 
-    const socket = io(BASE_URL, {
+    const socket = io(BASE_URL, {         
       query: { userId: authUser._id },
     });
 

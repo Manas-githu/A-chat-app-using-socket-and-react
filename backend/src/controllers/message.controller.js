@@ -77,3 +77,40 @@ export const sendMessage = async (req, res) => {
     res.status(500).send("internal server error: " + error.message);
   }
 };
+
+
+
+// router.delete ->  /api/message/:id
+export const deleteMessage = async (req, res) => {
+  try {
+    const { id:messageId } = req.params;
+    if (!req.user) {
+      return res.status(401).send("Unauthorized request");
+    }
+    
+    const userId = req.user._id;
+
+    const message = await Message.findById(messageId);
+    console.log(message)
+    if (!message) {
+      return res.status(404).send("Message not found");
+    }
+
+    if (message.senderId.toString() !== userId.toString()) {
+      return res.status(403).send("You are not authorized to delete this message");
+    }
+
+    await Message.findByIdAndDelete(messageId);
+    res.status(200).send("Message deleted successfully");
+
+    // Emit delete event to the receiver
+    const receiverSocketId = getReceiverSocketId(message.recieverId); // 
+    if (receiverSocketId && io) {
+      io.to(receiverSocketId).emit("deleteMessage", messageId);
+    }
+  } catch (error) {
+    console.error("Error in deleteMessage:", error.message);
+    res.status(500).send("Internal server error: " + error.message);
+  }
+};
+
