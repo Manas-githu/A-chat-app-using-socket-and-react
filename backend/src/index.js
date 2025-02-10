@@ -21,13 +21,13 @@ app.use(cookieParser()); // Parse cookies
 // Correctly configure CORS
 app.use(
   cors({
-    //origin: "http://localhost:5173", // Allow requests from frontend
-    origin: import.meta.env.MODE === "development" ? "http://localhost:3000/api" : "https://real-time-chat-app-with-video-call-using.onrender.com/"
+    origin: process.env.NODE_ENV === "development" ? "http://localhost:5173" : "https://real-time-chat-app-with-video-call-using.onrender.com/",
     credentials: true, // Allow credentials (cookies, headers, etc.)
     methods: ["GET", "POST", "PUT", "DELETE"], // Allow these HTTP methods
     allowedHeaders: ["Content-Type", "Authorization"], // Allow specific headers
   })
 );
+
 
 // Routes
 app.use("/api/auth", authRoutes);
