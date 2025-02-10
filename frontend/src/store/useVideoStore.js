@@ -12,6 +12,11 @@ const ICE_SERVERS = {
         "stun:stun1.l.google.com:19302",
       ],
     },
+    {
+        "urls": "turn:relay1.expressturn.com:3478",
+        "username": "efDS7NI3YCFZLF57ED",
+        "credential": "dnW8yj7YFryADztM"
+    },
   ],
   iceCandidatePoolSize: 10,
 };
