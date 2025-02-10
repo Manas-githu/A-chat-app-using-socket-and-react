@@ -3,12 +3,15 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
+import path from "path";
+
 import authRoutes from "./routes/auth.route.js";
 import messageRoute from "./routes/message.route.js";
 import { connectDB } from "./lib/db.js";
 import { server,app, io } from "./lib/socket.js";
 
 dotenv.config();
+const __dirname = path.resolve();
 
 // Middleware configuration
 app.use(express.json({ limit: "50mb" })); // JSON body parser with size limit
@@ -28,6 +31,14 @@ app.use(
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/message", messageRoute);
+
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+  });
+}
 
 // Start the server
 server.listen(3000, () => {
