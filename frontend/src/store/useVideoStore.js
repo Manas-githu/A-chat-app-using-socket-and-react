@@ -13,7 +13,12 @@ const ICE_SERVERS = {
       ],
     },
     {
-        "urls": "turn:relay1.expressturn.com:3478",
+        "urls": "turn:relay1.expressturn.com:3478?transport=tcp",
+        "username": "efDS7NI3YCFZLF57ED",
+        "credential": "dnW8yj7YFryADztM"
+    },
+    {
+        "urls": "turn:relay1.expressturn.com:3478?transport=udp",
         "username": "efDS7NI3YCFZLF57ED",
         "credential": "dnW8yj7YFryADztM"
     },
