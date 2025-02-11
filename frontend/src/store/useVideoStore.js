@@ -7,8 +7,8 @@ import { useChatStore } from "./useChatStore";
 const ICE_SERVERS = {
   iceServers: [
     {
-      "stun:stun.l.google.com:19302",
-      "stun:stun1.l.google.com:19302",
+      url: "stun:stun.l.google.com:19302",
+      url: "stun:stun1.l.google.com:19302",
       url: 'stun:global.stun.twilio.com:3478',
       urls: 'stun:global.stun.twilio.com:3478'
     },
