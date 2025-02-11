@@ -6,35 +6,29 @@ import { useChatStore } from "./useChatStore";
 
 const ICE_SERVERS = {
   iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:global.stun.twilio.com:3478" },
     {
-      urls: [
-        "stun:stun.l.google.com:19302",
-        "stun:stun1.l.google.com:19302",
-        'stun:global.stun.twilio.com:3478',
-        'stun:global.stun.twilio.com:3478'
-      ],
+      urls: "turn:global.turn.twilio.com:3478?transport=udp",
+      username: "YOUR_TWILIO_USERNAME",
+      credential: "YOUR_TWILIO_CREDENTIAL",
     },
     {
-      credential: 'lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=',
-      url: 'turn:global.turn.twilio.com:3478?transport=udp',
-      urls: 'turn:global.turn.twilio.com:3478?transport=udp',
-      username: 'c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0'
+      urls: "turn:global.turn.twilio.com:3478?transport=tcp",
+      username: "YOUR_TWILIO_USERNAME",
+      credential: "YOUR_TWILIO_CREDENTIAL",
     },
     {
-      credential: 'lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=',
-      url: 'turn:global.turn.twilio.com:3478?transport=tcp',
-      urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
-      username: 'c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0'
+      urls: "turn:global.turn.twilio.com:443?transport=tcp",
+      username: "YOUR_TWILIO_USERNAME",
+      credential: "YOUR_TWILIO_CREDENTIAL",
     },
-    {
-      credential: 'lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=',
-      url: 'turn:global.turn.twilio.com:443?transport=tcp',
-      urls: 'turn:global.turn.twilio.com:443?transport=tcp',
-      username: 'c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0'
-    }
   ],
   iceCandidatePoolSize: 10,
+  **iceTransportPolicy: "relay",** // ✅ Forces use of TURN
 };
+
 
 export const useVideoStore = create((set, get) => ({
   localStream: null,
@@ -141,7 +135,7 @@ export const useVideoStore = create((set, get) => ({
   },
 
   answerCall: async () => {
-    const { incomingCall } = get();
+    const { incomingCall,iceCandidatesQueue } = get();
     if (!incomingCall) return;
 
     try {
@@ -186,8 +180,14 @@ export const useVideoStore = create((set, get) => ({
       };
 
       await peer.setRemoteDescription(new RTCSessionDescription(incomingCall.signal));
+      for (const queuedCandidate of get().iceCandidatesQueue) {
+          await peer.addIceCandidate(new RTCIceCandidate(queuedCandidate));
+      }
+      set({ iceCandidatesQueue: [] });
+      
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
+      
 
       const socket = useAuthStore.getState().socket;
       socket.emit("answer-call", {
@@ -205,21 +205,22 @@ export const useVideoStore = create((set, get) => ({
     }
   },
 
-  handleIceCandidate: async ({ candidate }) => {
-    const { peer } = get();
-    try {
-      if (peer?.remoteDescription) {
-        await peer.addIceCandidate(new RTCIceCandidate(candidate));
-        console.log("Added ICE candidate:", candidate);
-      } else {
-        set((state) => ({
-          iceCandidatesQueue: [...state.iceCandidatesQueue, candidate],
-        }));
-      }
-    } catch (error) {
-      console.error("Error handling ICE candidate:", error);
+handleIceCandidate: async ({ candidate }) => {
+  const { peer, iceCandidatesQueue } = get();
+  try {
+    if (peer?.remoteDescription) {
+      await peer.addIceCandidate(new RTCIceCandidate(candidate));
+      console.log("Added ICE candidate:", candidate);
+    } else {
+      console.log("Queueing ICE candidate:", candidate);
+      set((state) => ({
+        iceCandidatesQueue: [...state.iceCandidatesQueue, candidate],
+      }));
     }
-  },
+  } catch (error) {
+    console.error("Error handling ICE candidate:", error);
+  }
+},
 
   endCall: () => {
     const { peer, localStream, remoteStream } = get();
