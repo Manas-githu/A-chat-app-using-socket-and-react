@@ -225,22 +225,36 @@ export const useVideoStore = create((set, get) => ({
 },
 
 
-  handleIceCandidate: async ({ candidate }) => {
-    const { peer } = get();
-    try {
-      if (!peer.remoteDescription) {
-  set((state) => ({
-    iceCandidatesQueue: [...state.iceCandidatesQueue, candidate],
-  }));
-} else {
-  await peer.addIceCandidate(new RTCIceCandidate(candidate));
-}
+handleIceCandidate: async ({ candidate }) => {
+  const { peer, iceCandidatesQueue } = get();
+  try {
+    if (!peer || !candidate) return;
 
+    if (!peer.remoteDescription) {
+      // Queue ICE candidate until remote description is set
+      set((state) => ({
+        iceCandidatesQueue: [...state.iceCandidatesQueue, candidate],
+      }));
+      console.log("Queued ICE candidate:", candidate);
+    } else {
+      // Add received candidate immediately
+      await peer.addIceCandidate(new RTCIceCandidate(candidate));
+      console.log("Added ICE candidate:", candidate);
 
-      } catch (error) {
-        console.error("Error handling ICE candidate:", error);
+      // Process any queued candidates (if any)
+      if (iceCandidatesQueue.length > 0) {
+        console.log("Processing queued ICE candidates...");
+        for (const queuedCandidate of iceCandidatesQueue) {
+          await peer.addIceCandidate(new RTCIceCandidate(queuedCandidate));
+        }
+        set({ iceCandidatesQueue: [] }); // Clear queue after processing
       }
-  },
+    }
+  } catch (error) {
+    console.error("Error handling ICE candidate:", error);
+  }
+},
+
 
   endCall: () => {
     const { peer, localStream, remoteStream } = get();
