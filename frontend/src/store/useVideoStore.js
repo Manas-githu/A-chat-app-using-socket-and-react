@@ -6,20 +6,29 @@ import { useChatStore } from "./useChatStore";
 
 const ICE_SERVERS = {
   iceServers: [
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:global.stun.twilio.com:3478" },
     {
-      urls: [
-        "stun:stun.l.google.com:19302",
-        "stun:stun1.l.google.com:19302",
-      ],
+      urls: "turn:global.turn.twilio.com:3478?transport=udp",
+      username: "YOUR_TWILIO_USERNAME",
+      credential: "YOUR_TWILIO_CREDENTIAL",
     },
     {
-        "urls": "turn:relay1.expressturn.com:3478",
-        "username": "efDS7NI3YCFZLF57ED",
-        "credential": "dnW8yj7YFryADztM"
+      urls: "turn:global.turn.twilio.com:3478?transport=tcp",
+      username: "YOUR_TWILIO_USERNAME",
+      credential: "YOUR_TWILIO_CREDENTIAL",
+    },
+    {
+      urls: "turn:global.turn.twilio.com:443?transport=tcp",
+      username: "YOUR_TWILIO_USERNAME",
+      credential: "YOUR_TWILIO_CREDENTIAL",
     },
   ],
   iceCandidatePoolSize: 10,
+  **iceTransportPolicy: "relay",** // ✅ Forces use of TURN
 };
+
 
 export const useVideoStore = create((set, get) => ({
   localStream: null,
