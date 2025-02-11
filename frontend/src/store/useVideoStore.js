@@ -11,22 +11,22 @@ const ICE_SERVERS = {
     { urls: "stun:global.stun.twilio.com:3478" },
     {
       urls: "turn:global.turn.twilio.com:3478?transport=udp",
-      username: "YOUR_TWILIO_USERNAME",
-      credential: "YOUR_TWILIO_CREDENTIAL",
+      username: "c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0",
+      credential: "lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=",
     },
     {
       urls: "turn:global.turn.twilio.com:3478?transport=tcp",
-      username: "YOUR_TWILIO_USERNAME",
-      credential: "YOUR_TWILIO_CREDENTIAL",
+      username: "c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0",
+      credential: "lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=",
     },
     {
       urls: "turn:global.turn.twilio.com:443?transport=tcp",
-      username: "YOUR_TWILIO_USERNAME",
-      credential: "YOUR_TWILIO_CREDENTIAL",
+      username: "c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0",
+      credential: "lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=",
     },
   ],
   iceCandidatePoolSize: 10,
-  **iceTransportPolicy: "relay",** // ✅ Forces use of TURN
+  iceTransportPolicy: "relay", // ✅ Corrected
 };
 
 
@@ -75,13 +75,13 @@ export const useVideoStore = create((set, get) => ({
 
       // Handle incoming tracks
       peer.ontrack = (event) => {
-        console.log("Received remote track", event.streams[0]);
-        event.streams[0].getTracks().forEach((track) => {
-          console.log("Adding track to remote stream:", track);
-          remoteStream.addTrack(track);
-        });
-        set({ remoteStream: remoteStream });
-      };
+  set((state) => {
+    const newStream = state.remoteStream || new MediaStream();
+    event.streams[0].getTracks().forEach((track) => newStream.addTrack(track));
+    return { remoteStream: newStream };
+  });
+};
+
 
       peer.onicecandidate = (event) => {
         if (event.candidate) {
@@ -100,6 +100,15 @@ export const useVideoStore = create((set, get) => ({
           get().endCall();
         }
       };
+
+      peer.oniceconnectionstatechange = () => {
+        console.log("ICE Connection State:", peer.iceConnectionState);
+        if (peer.iceConnectionState === "failed") {
+          toast.error("Connection failed. Please retry.");
+          get().endCall();
+        }
+      };
+
 
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
@@ -134,92 +143,110 @@ export const useVideoStore = create((set, get) => ({
     }
   },
 
-  answerCall: async () => {
-    const { incomingCall } = get();
-    if (!incomingCall) return;
+ answerCall: async () => {
+  const { incomingCall } = get();
+  if (!incomingCall) return;
 
-    try {
-      const localStream = await get().initializeMedia();
-      const peer = new RTCPeerConnection(ICE_SERVERS);
-      
-      // Create remote stream immediately
-      const remoteStream = new MediaStream();
-      set({ remoteStream, peer });
+  try {
+    const localStream = await get().initializeMedia();
+    const peer = new RTCPeerConnection(ICE_SERVERS);
 
-      // Add local tracks to peer connection
-      localStream.getTracks().forEach((track) => {
-        peer.addTrack(track, localStream);
+    // Create remote stream immediately
+    const remoteStream = new MediaStream();
+    set({ remoteStream, peer });
+
+    // Add local tracks to peer connection
+    localStream.getTracks().forEach((track) => {
+      peer.addTrack(track, localStream);
+    });
+
+    // Handle incoming tracks
+    peer.ontrack = (event) => {
+      set((state) => {
+        const newStream = state.remoteStream || new MediaStream();
+        event.streams[0].getTracks().forEach((track) => newStream.addTrack(track));
+        return { remoteStream: newStream };
       });
+    };
 
-      // Handle incoming tracks
-      peer.ontrack = (event) => {
-        if (event.streams.length > 0) {
-          // setRemoteStream(event.streams[0]); // Ensure this updates state properly
-          set({ remoteStream: event.streams[0] });
-        }
-      };
-      
-      
-      peer.onicecandidate = (event) => {
-        if (event.candidate) {
-          const socket = useAuthStore.getState().socket;
-          socket.emit("ice-candidate", {
-            candidate: event.candidate,
-            to: incomingCall.from,
-          });
-        }
-      };
+    // Queue ICE candidates if remote description is not set yet
+    peer.onicecandidate = (event) => {
+      if (event.candidate) {
+        const socket = useAuthStore.getState().socket;
+        socket.emit("ice-candidate", {
+          candidate: event.candidate,
+          to: incomingCall.from,
+        });
+      }
+    };
 
-      peer.onconnectionstatechange = () => {
-        console.log("Connection state changed:", peer.connectionState);
-        if (peer.connectionState === "connected") {
-          set({ callStatus: "connected" });
-        } else if (peer.connectionState === "disconnected") {
-          get().endCall();
-        }
-      };
+    peer.onconnectionstatechange = () => {
+      console.log("Connection state changed:", peer.connectionState);
+      if (peer.connectionState === "connected") {
+        set({ callStatus: "connected" });
+      } else if (peer.connectionState === "disconnected") {
+        get().endCall();
+      }
+    };
 
-      await peer.setRemoteDescription(new RTCSessionDescription(incomingCall.signal));
-      const answer = await peer.createAnswer();
-      await peer.setLocalDescription(answer);
+    peer.oniceconnectionstatechange = () => {
+      console.log("ICE Connection State:", peer.iceConnectionState);
+      if (peer.iceConnectionState === "failed") {
+        toast.error("Connection failed. Please retry.");
+        get().endCall();
+      }
+    };
 
-      const socket = useAuthStore.getState().socket;
-      socket.emit("answer-call", {
-        to: incomingCall.from,
-        signal: answer,
-      });
+    // Set remote description first
+    await peer.setRemoteDescription(new RTCSessionDescription(incomingCall.signal));
 
-      set({ 
-        callStatus: "connected",
-      });
+    // Process queued ICE candidates **after** setting remote description
+    get().iceCandidatesQueue.forEach(async (candidate) => {
+      await peer.addIceCandidate(new RTCIceCandidate(candidate));
+    });
+    set({ iceCandidatesQueue: [] });
 
-    } catch (error) {
-      console.error("Error answering call:", error);
-      get().endCall();
-    }
-  },
+    // Create and send answer
+    const answer = await peer.createAnswer();
+    await peer.setLocalDescription(answer);
+
+    const socket = useAuthStore.getState().socket;
+    socket.emit("answer-call", {
+      to: incomingCall.from,
+      signal: answer,
+    });
+
+    set({ callStatus: "connected" });
+
+  } catch (error) {
+    console.error("Error answering call:", error);
+    get().endCall();
+  }
+},
+
 
   handleIceCandidate: async ({ candidate }) => {
     const { peer } = get();
     try {
-      if (peer?.remoteDescription) {
-        await peer.addIceCandidate(new RTCIceCandidate(candidate));
-        console.log("Added ICE candidate:", candidate);
-      } else {
-        set((state) => ({
-          iceCandidatesQueue: [...state.iceCandidatesQueue, candidate],
-        }));
+      if (!peer.remoteDescription) {
+  set((state) => ({
+    iceCandidatesQueue: [...state.iceCandidatesQueue, candidate],
+  }));
+} else {
+  await peer.addIceCandidate(new RTCIceCandidate(candidate));
+}
+
+
+      } catch (error) {
+        console.error("Error handling ICE candidate:", error);
       }
-    } catch (error) {
-      console.error("Error handling ICE candidate:", error);
-    }
   },
 
   endCall: () => {
     const { peer, localStream, remoteStream } = get();
     const socket = useAuthStore.getState().socket;
     const { selectedUser } = useChatStore.getState();
-
+  
     if (peer) {
       peer.close();
     }
