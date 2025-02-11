@@ -4,30 +4,77 @@ import { useAuthStore } from "./useAuthStore";
 import toast from "react-hot-toast";
 import { useChatStore } from "./useChatStore";
 
+
 const ICE_SERVERS = {
+  accountSid: 'ACf09de3d90ec88ecec6677b4530c13f31',
+  dateCreated: 2025-02-11T03:09:22.000Z,
+  dateUpdated: 2025-02-11T03:09:22.000Z,
   iceServers: [
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
-    { urls: "stun:global.stun.twilio.com:3478" },
     {
-      urls: "turn:global.turn.twilio.com:3478?transport=udp",
-      username: "c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0",
-      credential: "lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=",
+      url: 'stun:global.stun.twilio.com:3478',
+      urls: 'stun:global.stun.twilio.com:3478'
     },
     {
-      urls: "turn:global.turn.twilio.com:3478?transport=tcp",
-      username: "c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0",
-      credential: "lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=",
+      credential: 'lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=',
+      url: 'turn:global.turn.twilio.com:3478?transport=udp',
+      urls: 'turn:global.turn.twilio.com:3478?transport=udp',
+      username: 'c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0'
     },
     {
-      urls: "turn:global.turn.twilio.com:443?transport=tcp",
-      username: "c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0",
-      credential: "lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=",
+      credential: 'lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=',
+      url: 'turn:global.turn.twilio.com:3478?transport=tcp',
+      urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
+      username: 'c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0'
     },
+    {
+      urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
+      username: 'c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0'
+    },
+    {
+    },
+    {
+    {
+      credential: 'lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=',
+      url: 'turn:global.turn.twilio.com:443?transport=tcp',
+      urls: 'turn:global.turn.twilio.com:443?transport=tcp',
+      username: 'c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0'
+    }
   ],
-  iceCandidatePoolSize: 10,
-  iceTransportPolicy: "relay", // ✅ Corrected
-};
+  password: 'lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=',
+  ttl: '86400',
+  username: 'c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0'
+}
+
+
+
+
+
+
+
+// const ICE_SERVERS = {
+//   iceServers: [
+//     { urls: "stun:stun.l.google.com:19302" },
+//     { urls: "stun:stun1.l.google.com:19302" },
+//     { urls: "stun:global.stun.twilio.com:3478" },
+//     {
+//       urls: "turn:global.turn.twilio.com:3478?transport=udp",
+//       username: "c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0",
+//       credential: "lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=",
+//     },
+//     {
+//       urls: "turn:global.turn.twilio.com:3478?transport=tcp",
+//       username: "c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0",
+//       credential: "lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=",
+//     },
+//     {
+//       urls: "turn:global.turn.twilio.com:443?transport=tcp",
+//       username: "c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0",
+//       credential: "lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=",
+//     },
+//   ],
+//   iceCandidatePoolSize: 10,
+//   iceTransportPolicy: "relay", // ✅ Corrected
+// };
 
 
 export const useVideoStore = create((set, get) => ({
