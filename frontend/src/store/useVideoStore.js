@@ -1,4 +1,3 @@
-// useVideoStore.js
 import { create } from "zustand";
 import { useAuthStore } from "./useAuthStore";
 import toast from "react-hot-toast";
@@ -26,9 +25,7 @@ const ICE_SERVERS = {
     },
   ],
   iceCandidatePoolSize: 10,
-  **iceTransportPolicy: "relay",** // ✅ Forces use of TURN
 };
-
 
 export const useVideoStore = create((set, get) => ({
   localStream: null,
@@ -62,8 +59,11 @@ export const useVideoStore = create((set, get) => ({
       const socket = useAuthStore.getState().socket;
       const currentUser = useAuthStore.getState().authUser;
 
-      const peer = new RTCPeerConnection(ICE_SERVERS);
-      
+      const peer = new RTCPeerConnection({
+        ...ICE_SERVERS,
+        iceTransportPolicy: "relay", // ✅ Ensure TURN servers are always used
+      });
+
       // Create remote stream immediately
       const remoteStream = new MediaStream();
       set({ remoteStream, peer });
@@ -80,7 +80,7 @@ export const useVideoStore = create((set, get) => ({
           console.log("Adding track to remote stream:", track);
           remoteStream.addTrack(track);
         });
-        set({ remoteStream: remoteStream });
+        set({ remoteStream: new MediaStream([...event.streams[0].getTracks()]) });
       };
 
       peer.onicecandidate = (event) => {
@@ -103,7 +103,7 @@ export const useVideoStore = create((set, get) => ({
 
       const offer = await peer.createOffer();
       await peer.setLocalDescription(offer);
-      
+
       socket.emit("call-user", {
         to: userId,
         from: currentUser._id,
@@ -135,31 +135,27 @@ export const useVideoStore = create((set, get) => ({
   },
 
   answerCall: async () => {
-    const { incomingCall,iceCandidatesQueue } = get();
+    const { incomingCall } = get();
     if (!incomingCall) return;
 
     try {
       const localStream = await get().initializeMedia();
-      const peer = new RTCPeerConnection(ICE_SERVERS);
-      
-      // Create remote stream immediately
+      const peer = new RTCPeerConnection({
+        ...ICE_SERVERS,
+        iceTransportPolicy: "relay", // ✅ Force TURN server usage
+      });
+
       const remoteStream = new MediaStream();
       set({ remoteStream, peer });
 
-      // Add local tracks to peer connection
       localStream.getTracks().forEach((track) => {
         peer.addTrack(track, localStream);
       });
 
-      // Handle incoming tracks
       peer.ontrack = (event) => {
-        if (event.streams.length > 0) {
-          // setRemoteStream(event.streams[0]); // Ensure this updates state properly
-          set({ remoteStream: event.streams[0] });
-        }
+        set({ remoteStream: new MediaStream([...event.streams[0].getTracks()]) });
       };
-      
-      
+
       peer.onicecandidate = (event) => {
         if (event.candidate) {
           const socket = useAuthStore.getState().socket;
@@ -180,14 +176,14 @@ export const useVideoStore = create((set, get) => ({
       };
 
       await peer.setRemoteDescription(new RTCSessionDescription(incomingCall.signal));
+
       for (const queuedCandidate of get().iceCandidatesQueue) {
-          await peer.addIceCandidate(new RTCIceCandidate(queuedCandidate));
+        await peer.addIceCandidate(new RTCIceCandidate(queuedCandidate));
       }
       set({ iceCandidatesQueue: [] });
-      
+
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
-      
 
       const socket = useAuthStore.getState().socket;
       socket.emit("answer-call", {
@@ -195,9 +191,7 @@ export const useVideoStore = create((set, get) => ({
         signal: answer,
       });
 
-      set({ 
-        callStatus: "connected",
-      });
+      set({ callStatus: "connected" });
 
     } catch (error) {
       console.error("Error answering call:", error);
@@ -205,39 +199,31 @@ export const useVideoStore = create((set, get) => ({
     }
   },
 
-handleIceCandidate: async ({ candidate }) => {
-  const { peer, iceCandidatesQueue } = get();
-  try {
-    if (peer?.remoteDescription) {
-      await peer.addIceCandidate(new RTCIceCandidate(candidate));
-      console.log("Added ICE candidate:", candidate);
-    } else {
-      console.log("Queueing ICE candidate:", candidate);
-      set((state) => ({
-        iceCandidatesQueue: [...state.iceCandidatesQueue, candidate],
-      }));
+  handleIceCandidate: async ({ candidate }) => {
+    const { peer, iceCandidatesQueue } = get();
+    try {
+      if (peer?.remoteDescription) {
+        await peer.addIceCandidate(new RTCIceCandidate(candidate));
+        console.log("Added ICE candidate:", candidate);
+      } else {
+        console.log("Queueing ICE candidate:", candidate);
+        set((state) => ({
+          iceCandidatesQueue: [...state.iceCandidatesQueue, candidate],
+        }));
+      }
+    } catch (error) {
+      console.error("Error handling ICE candidate:", error);
     }
-  } catch (error) {
-    console.error("Error handling ICE candidate:", error);
-  }
-},
+  },
 
   endCall: () => {
     const { peer, localStream, remoteStream } = get();
     const socket = useAuthStore.getState().socket;
     const { selectedUser } = useChatStore.getState();
 
-    if (peer) {
-      peer.close();
-    }
-    
-    if (localStream) {
-      localStream.getTracks().forEach((track) => track.stop());
-    }
-    
-    if (remoteStream) {
-      remoteStream.getTracks().forEach((track) => track.stop());
-    }
+    if (peer) peer.close();
+    if (localStream) localStream.getTracks().forEach((track) => track.stop());
+    if (remoteStream) remoteStream.getTracks().forEach((track) => track.stop());
 
     set({
       peer: null,
