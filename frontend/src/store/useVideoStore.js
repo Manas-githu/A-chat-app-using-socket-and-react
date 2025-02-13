@@ -5,25 +5,22 @@ import toast from "react-hot-toast";
 import { useChatStore } from "./useChatStore";
 
 
-const ICE_SERVERS = {
+const iceServers = {
   iceServers: [
     {
-      urls: 'stun:global.stun.twilio.com:3478'
-    },
-    {
       urls: 'turn:global.turn.twilio.com:3478?transport=udp',
-      username: 'c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0',
-      credential: 'lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk='
+      username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d',
+      credential: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40='
     },
     {
       urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
-      username: 'c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0',
-      credential: 'lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk='
+      username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d',
+      credential: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40='
     },
     {
       urls: 'turn:global.turn.twilio.com:443?transport=tcp',
-      username: 'c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0',
-      credential: 'lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk='
+      username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d',
+      credential: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40='
     }
   ]
 };
@@ -35,29 +32,39 @@ const ICE_SERVERS = {
 
 
 
-// const ICE_SERVERS = {
+
+// const ICE_SERVERS = $ node index.js
+// {
+//   accountSid: 'ACf09de3d90ec88ecec6677b4530c13f31',
+//   dateCreated: 2025-02-13T06:13:00.000Z,
+//   dateUpdated: 2025-02-13T06:13:00.000Z,
 //   iceServers: [
-//     { urls: "stun:stun.l.google.com:19302" },
-//     { urls: "stun:stun1.l.google.com:19302" },
-//     { urls: "stun:global.stun.twilio.com:3478" },
 //     {
-//       urls: "turn:global.turn.twilio.com:3478?transport=udp",
-//       username: "c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0",
-//       credential: "lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=",
+//       url: 'stun:global.stun.twilio.com:3478',
+//       urls: 'stun:global.stun.twilio.com:3478'
 //     },
 //     {
-//       urls: "turn:global.turn.twilio.com:3478?transport=tcp",
-//       username: "c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0",
-//       credential: "lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=",
+//       credential: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40=',
+//       url: 'turn:global.turn.twilio.com:3478?transport=udp',
+//       urls: 'turn:global.turn.twilio.com:3478?transport=udp',
+//       username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d'
 //     },
 //     {
-//       urls: "turn:global.turn.twilio.com:443?transport=tcp",
-//       username: "c07f4be304dfcd01378cc1f2ab08dfd11455f70c8ce378cb95c15ecda212d2f0",
-//       credential: "lt7pTosEWrqsdo/smLbDfBtsmb8D3azQyKokREg4cdk=",
+//       credential: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40=',
+//       url: 'turn:global.turn.twilio.com:3478?transport=tcp',
+//       urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
+//       username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d'
 //     },
+//     {
+//       credential: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40=',
+//       url: 'turn:global.turn.twilio.com:443?transport=tcp',
+//       urls: 'turn:global.turn.twilio.com:443?transport=tcp',
+//       username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d'
+//     }
 //   ],
-//   iceCandidatePoolSize: 10,
-//   iceTransportPolicy: "relay", // ✅ Corrected
+//   password: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40=',
+//   ttl: '86400',
+//   username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d'
 // };
 
 
@@ -93,7 +100,7 @@ export const useVideoStore = create((set, get) => ({
       const socket = useAuthStore.getState().socket;
       const currentUser = useAuthStore.getState().authUser;
 
-      const peer = new RTCPeerConnection(ICE_SERVERS);
+      const peer = new RTCPeerConnection(iceServers);
       
       // Create remote stream immediately
       const remoteStream = new MediaStream();
@@ -180,7 +187,7 @@ export const useVideoStore = create((set, get) => ({
 
   try {
     const localStream = await get().initializeMedia();
-    const peer = new RTCPeerConnection(ICE_SERVERS);
+    const peer = new RTCPeerConnection(iceServers);
 
     // Create remote stream immediately
     const remoteStream = new MediaStream();
