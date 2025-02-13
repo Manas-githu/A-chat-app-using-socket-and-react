@@ -6,36 +6,21 @@ import { useChatStore } from "./useChatStore";
 
 const iceServers = {
   iceServers: [
-    // 🔹 Google Public STUN Servers
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun3.l.google.com:19302' },
-    { urls: 'stun:stun4.l.google.com:19302' },
+    // ✅ Xirsys STUN & TURN servers
+    { urls: "stun:bn-turn2.xirsys.com" },
+    { urls: "turn:bn-turn2.xirsys.com:80?transport=udp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
+    { urls: "turn:bn-turn2.xirsys.com:3478?transport=udp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
+    { urls: "turn:bn-turn2.xirsys.com:80?transport=tcp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
+    { urls: "turn:bn-turn2.xirsys.com:3478?transport=tcp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
+    { urls: "turns:bn-turn2.xirsys.com:443?transport=tcp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
+    { urls: "turns:bn-turn2.xirsys.com:5349?transport=tcp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
 
-    // 🔹 Twilio TURN Servers (UDP + TCP for better NAT traversal)
-    {
-      urls: 'turn:global.turn.twilio.com:3478?transport=udp',
-      username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d',
-      credential: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40='
-    },
-    {
-      urls: 'turn:global.turn.twilio.com:3478?transport=tcp',
-      username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d',
-      credential: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40='
-    },
-    {
-      urls: 'turn:global.turn.twilio.com:443?transport=tcp',
-      username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d',
-      credential: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40='
-    },
-
-    // 🔹 Alternative TURN server for better fallback
-    {
-      urls: 'turns:global.turn.twilio.com:5349?transport=tcp',
-      username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d',
-      credential: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40='
-    }
+    // ✅ Google STUN servers (for backup)
+    { urls: "stun:stun.l.google.com:19302" },
+    { urls: "stun:stun1.l.google.com:19302" },
+    { urls: "stun:stun2.l.google.com:19302" },
+    { urls: "stun:stun3.l.google.com:19302" },
+    { urls: "stun:stun4.l.google.com:19302" }
   ]
 };
 
