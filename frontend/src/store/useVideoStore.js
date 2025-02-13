@@ -4,9 +4,16 @@ import { useAuthStore } from "./useAuthStore";
 import toast from "react-hot-toast";
 import { useChatStore } from "./useChatStore";
 
-
 const iceServers = {
   iceServers: [
+    // 🔹 Google Public STUN Servers
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
+
+    // 🔹 Twilio TURN Servers (UDP + TCP for better NAT traversal)
     {
       urls: 'turn:global.turn.twilio.com:3478?transport=udp',
       username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d',
@@ -21,9 +28,17 @@ const iceServers = {
       urls: 'turn:global.turn.twilio.com:443?transport=tcp',
       username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d',
       credential: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40='
+    },
+
+    // 🔹 Alternative TURN server for better fallback
+    {
+      urls: 'turns:global.turn.twilio.com:5349?transport=tcp',
+      username: 'd313d205ac9585b28f27461e4eb29b9b7e7d30ea85a69b3298b062c3f8a2c26d',
+      credential: 'KEc8AjWKMX9l42Z9J9Lr1kd/l9W/c2fiJ5mzn+nNF40='
     }
   ]
 };
+
 
 
 
