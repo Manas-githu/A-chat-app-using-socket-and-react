@@ -37,9 +37,14 @@ export const useVideoStore = create((set, get) => ({
   incomingCall: null,
   iceCandidatesQueue: [],
   isRemoteDescriptionSet: false,
+  isLocalDescriptionSet: false,
 
   initializeMedia: async () => {
-    if (get().localStream) return get().localStream;
+    const currentStream = get().localStream;
+    if (currentStream && currentStream.active) {
+      console.log("Reusing existing local stream");
+      return currentStream;
+    }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -50,10 +55,64 @@ export const useVideoStore = create((set, get) => ({
       console.log("Local stream initialized successfully");
       return stream;
     } catch (error) {
-      toast.error("Cannot access camera/microphone. Please check permissions.");
       console.error("Media access error:", error);
+      toast.error("Cannot access camera/microphone. Please check permissions.");
       throw error;
     }
+  },
+
+  setupPeerConnection: (stream) => {
+    const peer = new RTCPeerConnection(iceServers);
+    const remoteStream = new MediaStream();
+
+    // Add tracks to peer connection
+    stream.getTracks().forEach((track) => {
+      peer.addTrack(track, stream);
+    });
+
+    // Handle incoming tracks
+    peer.ontrack = (event) => {
+      try {
+        event.streams[0].getTracks().forEach((track) => {
+          remoteStream.addTrack(track);
+        });
+        set({ remoteStream });
+      } catch (error) {
+        console.error("Track handling error:", error);
+        toast.error("Video connection error");
+      }
+    };
+
+    peer.onconnectionstatechange = () => {
+      console.log("Connection state changed:", peer.connectionState);
+      switch (peer.connectionState) {
+        case "connected":
+          set({ callStatus: "connected" });
+          break;
+        case "disconnected":
+          console.log("Peer connection disconnected");
+          setTimeout(() => {
+            if (peer.connectionState === "disconnected") {
+              get().endCall();
+            }
+          }, 5000); // Wait 5s before ending call in case of temporary disconnection
+          break;
+        case "failed":
+          toast.error("Connection failed");
+          get().endCall();
+          break;
+      }
+    };
+
+    peer.oniceconnectionstatechange = () => {
+      console.log("ICE Connection State:", peer.iceConnectionState);
+      if (peer.iceConnectionState === "failed") {
+        console.log("Attempting ICE restart...");
+        peer.restartIce();
+      }
+    };
+
+    return { peer, remoteStream };
   },
 
   makeCall: async (userId) => {
@@ -62,73 +121,34 @@ export const useVideoStore = create((set, get) => ({
       const socket = useAuthStore.getState().socket;
       const currentUser = useAuthStore.getState().authUser;
 
-      const peer = new RTCPeerConnection(iceServers);
-      const remoteStream = new MediaStream();
+      const { peer, remoteStream } = get().setupPeerConnection(stream);
       
       set({ 
         remoteStream, 
         peer,
         isRemoteDescriptionSet: false,
+        isLocalDescriptionSet: false,
         iceCandidatesQueue: [] 
       });
-
-      stream.getTracks().forEach((track) => {
-        peer.addTrack(track, stream);
-      });
-
-      peer.ontrack = (event) => {
-        try {
-          set((state) => {
-            const newStream = state.remoteStream || new MediaStream();
-            event.streams[0].getTracks().forEach((track) => {
-              if (!newStream.getTracks().some(t => t.id === track.id)) {
-                newStream.addTrack(track);
-              }
-            });
-            return { remoteStream: newStream };
-          });
-        } catch (error) {
-          console.error("Track handling error:", error);
-          toast.error("Video connection error");
-        }
-      };
 
       peer.onicecandidate = (event) => {
         if (event.candidate) {
           socket.emit("ice-candidate", {
             candidate: event.candidate,
             to: userId,
-            from: currentUser._id,
-            isCaller: true
+            from: currentUser._id
           });
-        }
-      };
-
-      peer.onconnectionstatechange = () => {
-        const state = peer.connectionState;
-        console.log("Connection state:", state);
-        
-        switch (state) {
-          case "connected":
-            set({ callStatus: "connected" });
-            break;
-          case "disconnected":
-          case "failed":
-            toast.error("Call disconnected");
-            get().endCall();
-            break;
-          case "closed":
-            get().endCall();
-            break;
         }
       };
 
       const offer = await peer.createOffer({
         offerToReceiveAudio: true,
-        offerToReceiveVideo: true
+        offerToReceiveVideo: true,
+        iceRestart: true
       });
       
       await peer.setLocalDescription(offer);
+      set({ isLocalDescriptionSet: true });
       
       socket.emit("call-user", {
         to: userId,
@@ -151,11 +171,10 @@ export const useVideoStore = create((set, get) => ({
       set({
         incomingCall: { from, signal },
         callStatus: "incoming",
-        localStream: stream,
-        iceCandidatesQueue: []
+        localStream: stream
       });
     } catch (error) {
-      console.error("Incoming call error:", error);
+      console.error("Error handling incoming call:", error);
       get().endCall();
     }
   },
@@ -166,90 +185,41 @@ export const useVideoStore = create((set, get) => ({
 
     try {
       const localStream = await get().initializeMedia();
-      const peer = new RTCPeerConnection(iceServers);
-      const remoteStream = new MediaStream();
+      const { peer, remoteStream } = get().setupPeerConnection(localStream);
       
       set({ 
         remoteStream, 
         peer,
-        isRemoteDescriptionSet: false 
+        isRemoteDescriptionSet: false,
+        isLocalDescriptionSet: false
       });
-
-      localStream.getTracks().forEach((track) => {
-        peer.addTrack(track, localStream);
-      });
-
-      peer.ontrack = (event) => {
-        try {
-          set((state) => {
-            const newStream = state.remoteStream || new MediaStream();
-            event.streams[0].getTracks().forEach((track) => {
-              if (!newStream.getTracks().some(t => t.id === track.id)) {
-                newStream.addTrack(track);
-              }
-            });
-            return { remoteStream: newStream };
-          });
-        } catch (error) {
-          console.error("Track handling error:", error);
-          toast.error("Video connection error");
-        }
-      };
 
       peer.onicecandidate = (event) => {
         if (event.candidate) {
           const socket = useAuthStore.getState().socket;
           socket.emit("ice-candidate", {
             candidate: event.candidate,
-            to: incomingCall.from,
-            isCaller: false
+            to: incomingCall.from
           });
         }
       };
 
-      peer.onconnectionstatechange = () => {
-        const state = peer.connectionState;
-        console.log("Connection state:", state);
-        
-        switch (state) {
-          case "connected":
-            set({ callStatus: "connected" });
-            break;
-          case "disconnected":
-          case "failed":
-            toast.error("Call disconnected");
-            get().endCall();
-            break;
-          case "closed":
-            get().endCall();
-            break;
-        }
-      };
-
+      console.log("Setting remote description for answer:", incomingCall.signal);
       await peer.setRemoteDescription(new RTCSessionDescription(incomingCall.signal));
       set({ isRemoteDescriptionSet: true });
 
-      // Process queued candidates
-      const { iceCandidatesQueue } = get();
-      for (const candidate of iceCandidatesQueue) {
-        try {
-          await peer.addIceCandidate(new RTCIceCandidate(candidate));
-        } catch (error) {
-          console.error("Error adding queued candidate:", error);
-        }
-      }
-      set({ iceCandidatesQueue: [] });
+      // Process any queued candidates
+      await get().processIceCandidateQueue();
 
       const answer = await peer.createAnswer();
       await peer.setLocalDescription(answer);
+      set({ isLocalDescriptionSet: true });
 
       const socket = useAuthStore.getState().socket;
       socket.emit("answer-call", {
         to: incomingCall.from,
         signal: answer,
       });
-
-      set({ callStatus: "connected" });
 
     } catch (error) {
       console.error("Error answering call:", error);
@@ -258,26 +228,40 @@ export const useVideoStore = create((set, get) => ({
     }
   },
 
-  handleIceCandidate: async ({ candidate, from }) => {
+  processIceCandidateQueue: async () => {
+    const { peer, iceCandidatesQueue } = get();
+    if (!peer || !peer.remoteDescription) return;
+
+    try {
+      console.log(`Processing ${iceCandidatesQueue.length} queued candidates`);
+      for (const candidate of iceCandidatesQueue) {
+        await peer.addIceCandidate(new RTCIceCandidate(candidate));
+      }
+      set({ iceCandidatesQueue: [] });
+    } catch (error) {
+      console.error("Error processing ICE candidates:", error);
+    }
+  },
+
+  handleIceCandidate: async ({ candidate }) => {
     const { peer, isRemoteDescriptionSet } = get();
     
-    try {
-      if (!peer || !candidate) return;
+    if (!peer) return;
 
+    try {
       if (!isRemoteDescriptionSet) {
+        console.log("Queued ICE candidate");
         set((state) => ({
           iceCandidatesQueue: [...state.iceCandidatesQueue, candidate]
         }));
-        console.log("Queued ICE candidate");
         return;
       }
 
       await peer.addIceCandidate(new RTCIceCandidate(candidate));
-      console.log("Added ICE candidate");
+      console.log("Added ICE candidate directly");
 
     } catch (error) {
-      console.error("ICE candidate error:", error);
-      toast.error("Connection error");
+      console.error("Error handling ICE candidate:", error);
     }
   },
 
@@ -291,11 +275,17 @@ export const useVideoStore = create((set, get) => ({
     }
     
     if (localStream) {
-      localStream.getTracks().forEach((track) => track.stop());
+      localStream.getTracks().forEach((track) => {
+        track.stop();
+        localStream.removeTrack(track);
+      });
     }
     
     if (remoteStream) {
-      remoteStream.getTracks().forEach((track) => track.stop());
+      remoteStream.getTracks().forEach((track) => {
+        track.stop();
+        remoteStream.removeTrack(track);
+      });
     }
 
     set({
@@ -305,7 +295,8 @@ export const useVideoStore = create((set, get) => ({
       callStatus: null,
       incomingCall: null,
       iceCandidatesQueue: [],
-      isRemoteDescriptionSet: false
+      isRemoteDescriptionSet: false,
+      isLocalDescriptionSet: false
     });
 
     if (selectedUser?._id) {
