@@ -47,7 +47,7 @@ const iceServers = {
     username: "c6423e269f600466978874b9", 
     credential: "WHntcvF0TEmGcm8h" 
   }
-];
+]
 };
 
 
