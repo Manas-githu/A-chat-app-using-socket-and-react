@@ -25,31 +25,30 @@ import { useChatStore } from "./useChatStore";
 // };
 
 const iceServers = {
-iceServers :  [
-  { urls: 'stun:stun.relay.metered.ca:80' },
-  {
-    urls: 'turn:global.relay.metered.ca:80',
-    username: 'c6423e269f600466978874b9',
-    credential: 'WHntcvF0TEmGcm8h'
-  },
-  {
-    urls: 'turn:global.relay.metered.ca:80?transport=tcp',
-    username: 'c6423e269f600466978874b9',
-    credential: 'WHntcvF0TEmGcm8h'
-  },
-  {
-    urls: 'turn:global.relay.metered.ca:443',
-    username: 'c6423e269f600466978874b9',
-    credential: 'WHntcvF0TEmGcm8h'
-  },
-  {
-    urls: 'turns:global.relay.metered.ca:443?transport=tcp',
-    username: 'c6423e269f600466978874b9',
-    credential: 'WHntcvF0TEmGcm8h'
-  }
-]
+  iceServers: [
+    { urls: "stun:stun.relay.metered.ca:80" },
+    { 
+      urls: "turn:global.relay.metered.ca:80", 
+      username: "c6423e269f600466978874b9", 
+      credential: "WHntcvF0TEmGcm8h" 
+    },
+    { 
+      urls: "turn:global.relay.metered.ca:80?transport=tcp", 
+      username: "c6423e269f600466978874b9", 
+      credential: "WHntcvF0TEmGcm8h" 
+    },
+    { 
+      urls: "turn:global.relay.metered.ca:443", 
+      username: "c6423e269f600466978874b9", 
+      credential: "WHntcvF0TEmGcm8h" 
+    },
+    { 
+      urls: "turns:global.relay.metered.ca:443?transport=tcp", 
+      username: "c6423e269f600466978874b9", 
+      credential: "WHntcvF0TEmGcm8h" 
+    }
+  ]
 };
-
 
 
 
