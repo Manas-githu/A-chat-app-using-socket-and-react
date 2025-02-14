@@ -4,27 +4,51 @@ import { useAuthStore } from "./useAuthStore";
 import toast from "react-hot-toast";
 import { useChatStore } from "./useChatStore";
 
+// const iceServers = {
+//   iceServers: [
+//     // ✅ Xirsys STUN & TURN servers
+//     { urls: "stun:bn-turn2.xirsys.com" },
+//     { urls: "turn:bn-turn2.xirsys.com:80?transport=udp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
+//     { urls: "turn:bn-turn2.xirsys.com:3478?transport=udp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
+//     { urls: "turn:bn-turn2.xirsys.com:80?transport=tcp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
+//     { urls: "turn:bn-turn2.xirsys.com:3478?transport=tcp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
+//     { urls: "turns:bn-turn2.xirsys.com:443?transport=tcp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
+//     { urls: "turns:bn-turn2.xirsys.com:5349?transport=tcp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
+
+//     // ✅ Google STUN servers (for backup)
+//     { urls: "stun:stun.l.google.com:19302" },
+//     { urls: "stun:stun1.l.google.com:19302" },
+//     { urls: "stun:stun2.l.google.com:19302" },
+//     { urls: "stun:stun3.l.google.com:19302" },
+//     { urls: "stun:stun4.l.google.com:19302" }
+//   ]
+// };
+
 const iceServers = {
-  iceServers: [
-    // ✅ Xirsys STUN & TURN servers
-    { urls: "stun:bn-turn2.xirsys.com" },
-    { urls: "turn:bn-turn2.xirsys.com:80?transport=udp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
-    { urls: "turn:bn-turn2.xirsys.com:3478?transport=udp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
-    { urls: "turn:bn-turn2.xirsys.com:80?transport=tcp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
-    { urls: "turn:bn-turn2.xirsys.com:3478?transport=tcp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
-    { urls: "turns:bn-turn2.xirsys.com:443?transport=tcp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
-    { urls: "turns:bn-turn2.xirsys.com:5349?transport=tcp", username: "MSBZEfd7lYvl9bbpeBDyNwFf5MBO8sO95sG33Fuo3uL-_HPFPBPMOj7_Okm0T4piAAAAAGeuEllNYW5hcw==", credential: "ceb2c206-ea20-11ef-8265-0242ac140004" },
-
-    // ✅ Google STUN servers (for backup)
-    { urls: "stun:stun.l.google.com:19302" },
-    { urls: "stun:stun1.l.google.com:19302" },
-    { urls: "stun:stun2.l.google.com:19302" },
-    { urls: "stun:stun3.l.google.com:19302" },
-    { urls: "stun:stun4.l.google.com:19302" }
-  ]
+iceServers :  [
+  { urls: 'stun:stun.relay.metered.ca:80' },
+  {
+    urls: 'turn:global.relay.metered.ca:80',
+    username: 'c6423e269f600466978874b9',
+    credential: 'WHntcvF0TEmGcm8h'
+  },
+  {
+    urls: 'turn:global.relay.metered.ca:80?transport=tcp',
+    username: 'c6423e269f600466978874b9',
+    credential: 'WHntcvF0TEmGcm8h'
+  },
+  {
+    urls: 'turn:global.relay.metered.ca:443',
+    username: 'c6423e269f600466978874b9',
+    credential: 'WHntcvF0TEmGcm8h'
+  },
+  {
+    urls: 'turns:global.relay.metered.ca:443?transport=tcp',
+    username: 'c6423e269f600466978874b9',
+    credential: 'WHntcvF0TEmGcm8h'
+  }
+]
 };
-
-
 
 
 
