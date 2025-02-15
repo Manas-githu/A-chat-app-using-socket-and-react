@@ -26,28 +26,26 @@ import { useChatStore } from "./useChatStore";
 
 const iceServers = {
   iceServers: [
-  { urls: "stun:stun.relay.metered.ca:80" },
-  { 
-    urls: "turn:asia.relay.metered.ca:80", 
-    username: "c6423e269f600466978874b9", 
-    credential: "WHntcvF0TEmGcm8h" 
-  },
-  { 
-    urls: "turn:asia.relay.metered.ca:80?transport=tcp", 
-    username: "c6423e269f600466978874b9", 
-    credential: "WHntcvF0TEmGcm8h" 
-  },
-  { 
-    urls: "turn:asia.relay.metered.ca:443", 
-    username: "c6423e269f600466978874b9", 
-    credential: "WHntcvF0TEmGcm8h" 
-  },
-  { 
-    urls: "turns:asia.relay.metered.ca:443?transport=tcp", 
-    username: "c6423e269f600466978874b9", 
-    credential: "WHntcvF0TEmGcm8h" 
-  }
-]
+    {
+      "urls": "stun:stun.cloudflare.com:3478"
+    },
+    {
+      "urls": "turn:turn.cloudflare.com:3478?transport=udp",
+      "username": "g0553dfdeb0bfb736b04c52d036e3d9caa1a4c7e9bc51f41af4d983337fb1170",
+      "credential": "07f391a1b52cb00cf67fdf5e3b7e2dd3fb471bbc918d639ad676464eefc4ffeb"
+    },
+    {
+      "urls": "turn:turn.cloudflare.com:3478?transport=tcp",
+      "username": "g0553dfdeb0bfb736b04c52d036e3d9caa1a4c7e9bc51f41af4d983337fb1170",
+      "credential": "07f391a1b52cb00cf67fdf5e3b7e2dd3fb471bbc918d639ad676464eefc4ffeb"
+    },
+    {
+      "urls": "turns:turn.cloudflare.com:5349?transport=tcp",
+      "username": "g0553dfdeb0bfb736b04c52d036e3d9caa1a4c7e9bc51f41af4d983337fb1170",
+      "credential": "07f391a1b52cb00cf67fdf5e3b7e2dd3fb471bbc918d639ad676464eefc4ffeb"
+    }
+  ]
+
 };
 
 
