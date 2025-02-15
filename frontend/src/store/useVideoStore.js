@@ -26,27 +26,29 @@ import { useChatStore } from "./useChatStore";
 
 const iceServers = {
   iceServers: [
-    {
-      "urls": "stun:stun.cloudflare.com:3478"
+    { urls: "stun:stun.cloudflare.com:3478" },  // Cloudflare STUN
+    
+    { // Cloudflare TURN (UDP)
+      urls: "turn:turn.cloudflare.com:3478?transport=udp",
+      username: "g0553dfdeb0bfb736b04c52d036e3d9caa1a4c7e9bc51f41af4d983337fb1170",
+      credential: "07f391a1b52cb00cf67fdf5e3b7e2dd3fb471bbc918d639ad676464eefc4ffeb"
     },
-    {
-      "urls": "turn:turn.cloudflare.com:3478?transport=udp",
-      "username": "g0553dfdeb0bfb736b04c52d036e3d9caa1a4c7e9bc51f41af4d983337fb1170",
-      "credential": "07f391a1b52cb00cf67fdf5e3b7e2dd3fb471bbc918d639ad676464eefc4ffeb"
+    
+    { // Cloudflare TURN (TCP)
+      urls: "turn:turn.cloudflare.com:3478?transport=tcp",
+      username: "g0553dfdeb0bfb736b04c52d036e3d9caa1a4c7e9bc51f41af4d983337fb1170",
+      credential: "07f391a1b52cb00cf67fdf5e3b7e2dd3fb471bbc918d639ad676464eefc4ffeb"
     },
-    {
-      "urls": "turn:turn.cloudflare.com:3478?transport=tcp",
-      "username": "g0553dfdeb0bfb736b04c52d036e3d9caa1a4c7e9bc51f41af4d983337fb1170",
-      "credential": "07f391a1b52cb00cf67fdf5e3b7e2dd3fb471bbc918d639ad676464eefc4ffeb"
-    },
-    {
-      "urls": "turns:turn.cloudflare.com:5349?transport=tcp",
-      "username": "g0553dfdeb0bfb736b04c52d036e3d9caa1a4c7e9bc51f41af4d983337fb1170",
-      "credential": "07f391a1b52cb00cf67fdf5e3b7e2dd3fb471bbc918d639ad676464eefc4ffeb"
+    
+    { // Secure TURN over TLS (TCP 5349)
+      urls: "turns:turn.cloudflare.com:5349?transport=tcp",
+      username: "g0553dfdeb0bfb736b04c52d036e3d9caa1a4c7e9bc51f41af4d983337fb1170",
+      credential: "07f391a1b52cb00cf67fdf5e3b7e2dd3fb471bbc918d639ad676464eefc4ffeb"
     }
-  ]
-
+  ],
+  iceTransportPolicy: "relay"  // ✅ Forces all traffic through TURN
 };
+
 
 
 
